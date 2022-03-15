@@ -4,6 +4,7 @@
 #define LSB_IN 3
 #define BTN_IN 4
 #define SERVO_PIN 5
+#define LED_PIN 6
 
 Servo changerServo;
 
@@ -11,15 +12,15 @@ bool dataMode;
 byte markerData, marker;
 int servoAngle;
 
-
-unsigned long buttonHoldStart;
+unsigned long buttonHoldStart, lastPress;
 
 bool checkButton() {
   static bool lastState = 0;
 
   if (!digitalRead(BTN_IN)) {
-    if (!lastState) {
+    if (!lastState && (lastPress - millis() > 100)) {
       lastState = true;
+      lastPress = millis();
       buttonHoldStart = millis();
       return true;
     } else
@@ -50,7 +51,7 @@ void updateBlink() {
   } else
     blinkTill = 0;
 
-  digitalWrite(LED_BUILTIN, lit);
+  digitalWrite(LED_PIN, lit);
 }
 
 void setBlinks(byte numBlinks) {
@@ -63,7 +64,7 @@ void setup() {
   pinMode(LSB_IN, INPUT_PULLUP);
   pinMode(BTN_IN, INPUT_PULLUP);
 
-  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(LED_PIN, OUTPUT);
 
   changerServo.attach(SERVO_PIN, 500, 2500);
 
@@ -72,11 +73,12 @@ void setup() {
   marker = 0;
 
   buttonHoldStart = 0;
+  lastPress = 0;
 
   blinkTill = 0;
   blinks = 0;
 
-  digitalWrite(LED_BUILTIN, 0);
+  digitalWrite(LED_PIN, 0);
 }
 
 void loop() {
